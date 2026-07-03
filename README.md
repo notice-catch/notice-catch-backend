@@ -9,7 +9,8 @@
 | :--- | :--- |
 | **Backend** | ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=flat-and-square&logo=java&logoColor=white) ![Spring Boot](https://img.shields.io/badge/spring%20boot-%236DB33F.svg?style=flat-and-square&logo=spring&logoColor=white) |
 | **Infrastructure** | ![Docker](https://img.shields.io/badge/docker-%232496ED.svg?style=flat-and-square&logo=docker&logoColor=white) |
-<br><br>
+
+<br>
 
 ## ✨ Key Features (서비스 기능 정의)
 
