@@ -36,6 +36,65 @@
 ### ⚙️ 5. 마이페이지 및 맞춤형 알림 설정
 * **내 프로필 조회:** 내가 등록한 대학교, 학과, 학년 정보를 한눈에 확인합니다.
 * **세부 알림 토글 제어:** 전체 알림 On/Off는 물론, 마감 임박 알림이나 특정 카테고리(장학, 비교과, 학사, 취업 등)별로 알림을 받을지 말지 유저가 입맛대로 켜고 끌 수 있습니다.
+
+<br>
+
+## 🚀 Getting Started (로컬 개발 환경 실행 방법)
+
+공지캐치 백엔드 프로젝트를 로컬 컴퓨터에서 가장 빠르게 실행하는 방법입니다. 프로젝트는 **Docker**를 통해 데이터베이스 환경을 격리하여 관리합니다.
+
+### 📋 1. 사전 요구사항 (Prerequisites)
+프로젝트를 실행하기 전, 시스템에 아래 프로그램이 설치되어 있어야 합니다.
+* **Java 21 JDK** (추천: Eclipse Temurin 21)
+* **Docker** 및 **Docker Desktop** (실행 중이어야 함)
+
+### 🛠️ 2. 소스코드 복사 및 실행 (Quick Start)
+
+**Step 1. 저장소 복사하기**
+```bash
+git clone [https://github.com/](https://github.com/)[유저이름]/notice-catch.git
+cd notice-catch
+```
+
+
+**Step 2. 로컬 개발용 마리아DB(MariaDB) 컨테이너 구동하기**
+```bash
+docker compose -f infra/docker-compose-local.yml up -d
+```
+
+
+**Step 3. 스프링 부트 애플리케이션 실행하기**
+
+인텔리제이(IntelliJ IDEA)로 프로젝트를 열고 NoticeCatchApplication.java 의 재생(▶️) 버튼을 누르거나, 터미널에서 아래 명령어를 입력합니다.
+
+Windows (명령 프롬프트 / PowerShell)
+
+```bash
+./gradlew bootRun
+```
+
+
+Mac / Linux
+
+```bash
+chmod +x gradlew
+./gradlew bootRun
+```
+
+<br>
+
+### 🔗 3. 연결 정보 및 API 명세서 (Endpoints)
+
+서버가 정상적으로 구동되면 브라우저를 통해 아래 주소들에 접근할 수 있습니다.
+
+* **Swagger API 자동 명세서:** [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+
+**로컬 데이터베이스 접속 정보 (MariaDB):**
+* **Host:** `localhost`
+* **Port:** `3307`
+* **Database:** `notice_catch`
+* **Username / Password:** `catch_user` / `catch_password`
+
 <br>
 
 🤝 **프로젝트의 일관성을 위한 [공지캐치 SpringBoot 개발 컨벤션 규칙 보러가기](./docs/CONVENTION.md)**
