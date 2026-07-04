@@ -1,0 +1,34 @@
+package com.noticecatch.api.domain.keyword.entity;
+
+import com.noticecatch.api.domain.user.entity.User;
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "user_keywords")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+public class UserKeyword {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Column(nullable = false, length = 255)
+    private String keyword;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+}
