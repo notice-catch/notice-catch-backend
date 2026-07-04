@@ -23,8 +23,12 @@ public class UserController implements UserControllerDocs {
     }
 
     @Override
-    @PatchMapping("/users/profile")
-    public ApiResponse<Map<String, Object>> updateProfile(@RequestBody Map<String, Object> request) {
+    @PatchMapping("/users/profile/universities/{universityId}/departments/{departmentId}")
+    public ApiResponse<Map<String, Object>> updateProfile(
+            @PathVariable Long universityId,
+            @PathVariable Long departmentId,
+            @RequestBody Map<String, Object> request) {
+        // 비즈니스 로직 처리 단계에서 바디의 grade와 경로의 Id들을 꺼내 유저 정보를 최신화합니다.
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, null);
     }
 

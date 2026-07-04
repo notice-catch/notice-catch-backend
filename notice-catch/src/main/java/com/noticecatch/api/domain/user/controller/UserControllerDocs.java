@@ -3,6 +3,7 @@ package com.noticecatch.api.domain.user.controller;
 import com.noticecatch.api.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,8 +21,16 @@ public interface UserControllerDocs {
     @Operation(summary = "마이페이지 및 프로필 조회", description = "기본 인적사항 및 개인 지표 데이터를 추출합니다.")
     ApiResponse<Map<String, Object>> getProfile();
 
-    @Operation(summary = "프로필 수정", description = "마이페이지 환경 내 소속 대학, 학과, 학년 사안을 최신 상태로 조율합니다.")
-    ApiResponse<Map<String, Object>> updateProfile(@RequestBody Map<String, Object> request);
+    @Operation(summary = "프로필 수정", description = "마이페이지 환경 내 소속 대학 ID, 학과 ID, 학년 사안을 변경 및 조율합니다.")
+    @Parameters({
+            @Parameter(name = "universityId", description = "수정 변경할 대학교 고유 ID", example = "3"),
+            @Parameter(name = "departmentId", description = "수정 변경할 학과 고유 ID", example = "1")
+    })
+    ApiResponse<Map<String, Object>> updateProfile(
+            @PathVariable Long universityId,
+            @PathVariable Long departmentId,
+            @RequestBody Map<String, Object> request
+    );
 
     @Operation(summary = "알림 설정 조회", description = "키워드 알림 및 테마별 알림 수신 승인 여부를 체크합니다.")
     ApiResponse<Map<String, Object>> getAlarmSettings();
