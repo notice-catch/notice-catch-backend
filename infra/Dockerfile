@@ -1,18 +1,4 @@
 # 1단계: 빌드 스테이지
-FROM eclipse-temurin:21-jdk-alpine AS builder
-WORKDIR /builder
-
-COPY gradlew .
-COPY gradle gradle
-COPY build.gradle .
-COPY settings.gradle .
-COPY src src
-
-RUN chmod +x ./gradlew
-# plain jar 생성을 방지하고 배포용 bootJar만 깔끔하게 빌드합니다.
-RUN ./gradlew clean bootJar -x test
-
-# 2단계: 실행 스테이지
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /application
 
@@ -25,10 +11,9 @@ RUN apk add --no-cache tzdata && \
 RUN addgroup --system spring && adduser --system spring -G spring
 USER spring:spring
 
-# 빌드 스테이지에서 생성된 단 하나의 단독 .jar 파일만 안전하게 복사합니다.
-COPY --from=builder /builder/build/libs/*-SNAPSHOT.jar app.jar
+# 외부(내 컴퓨터)에서 빌드된 jar 파일을 컨테이너 안으로 복사
+COPY app.jar app.jar
 
 EXPOSE 8080
 
-# JVM 옵션을 부여하여 바로 실행합니다.
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
