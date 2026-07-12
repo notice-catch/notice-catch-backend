@@ -4,8 +4,8 @@ services:
   # 운영 스프링 부트 API 서버 컨테이너만 실행합니다.
   catch-api:
     build:
-      context: ../
-      dockerfile: infra/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     container_name: catch-api-prod
     ports:
       - "8080:8080"
