@@ -1,20 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. 운영 DB 서버 컨테이너
-  catch-db:
-    image: mariadb:10.11
-    container_name: catch-mariadb-prod
-    environment:
-      MARIADB_ROOT_PASSWORD: ${PROD_DB_ROOT_PASSWORD}
-      MARIADB_DATABASE: ${PROD_DB_DATABASE}
-      MARIADB_USER: ${PROD_DB_USER}
-      MARIADB_PASSWORD: ${PROD_DB_PASSWORD}
-    volumes:
-      - mariadb_prod_data:/var/lib/mysql
-    restart: always
-
-  # 2. 운영 스프링 부트 API 서버 컨테이너
+  # 운영 스프링 부트 API 서버 컨테이너만 실행합니다.
   catch-api:
     build:
       context: ../
@@ -24,9 +11,7 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-    depends_on:
-      - catch-db
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://${PROD_DB_HOST}:3306/${PROD_DB_DATABASE}
+      - SPRING_DATASOURCE_USERNAME=${PROD_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${PROD_DB_PASSWORD}
     restart: always
-
-volumes:
-  mariadb_prod_data:

@@ -9,9 +9,8 @@ COPY settings.gradle .
 COPY src src
 
 RUN chmod +x ./gradlew
-RUN ./gradlew bootJar
-RUN java -Djarmode=layertools -jar build/libs/*.jar extract
-
+# plain jar 생성을 방지하고 배포용 bootJar만 깔끔하게 빌드합니다.
+RUN ./gradlew clean bootJar -x test
 
 # 2단계: 실행 스테이지
 FROM eclipse-temurin:21-jre-alpine
@@ -22,16 +21,14 @@ RUN apk add --no-cache tzdata && \
     cp /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \
     echo "Asia/Seoul" > /etc/timezone
 
+# 보안을 위한 non-root 유저 생성
 RUN addgroup --system spring && adduser --system spring -G spring
 USER spring:spring
 
-# 분할된 레이어 카피
-COPY --from=builder /builder/dependencies/ ./
-COPY --from=builder /builder/spring-boot-loader/ ./
-COPY --from=builder /builder/snapshot-dependencies/ ./
-COPY --from=builder /builder/application/ ./
+# 빌드 스테이지에서 생성된 단 하나의 단독 .jar 파일만 안전하게 복사합니다.
+COPY --from=builder /builder/build/libs/*-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
 
-# 운영 서버의 효율적인 컨테이너 메모리 활용을 위한 JVM 옵션 추가
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "org.springframework.boot.loader.launch.JarLauncher"]
+# JVM 옵션을 부여하여 바로 실행합니다.
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
