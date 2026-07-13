@@ -65,4 +65,13 @@ public class NoticeController implements NoticeControllerDocs {
             @RequestParam(defaultValue = "20") int size) {
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, null);
     }
+
+    @Override
+    @GetMapping("/calendar/no-deadline")
+    public ApiResponse<Map<String, Object>> getNoDeadlineNotices(
+            @RequestParam int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, null);
+    }
 }
