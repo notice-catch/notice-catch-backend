@@ -29,18 +29,28 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew bootJar -x test
 
-      # 5. EC2 서버로 빌드된 jar 파일 전송 (SCP)
+      # 5. Docker 관련 파일 전송
+      - name: Transfer Docker files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "infra/Dockerfile,infra/docker-compose-prod.yml"
+          target: "/home/ubuntu/infra"
+          strip_components: 1
+
+      # 6. 빌드된 jar 파일 전송
       - name: Transfer jar to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
-          source: "build/libs/*.jar, infra/Dockerfile, infra/docker-compose-prod.yml"
-          target: "/home/ubuntu/infra/build/libs"
-          strip_components: 2
+          source: "build/libs/*.jar"
+          target: "/home/ubuntu/infra"
 
-      # 6. EC2 서버 접속 후 도커 컴포즈 재실행 (SSH)
+      # 7. EC2 서버 접속 후 도커 컴포즈 재실행 (SSH)
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
