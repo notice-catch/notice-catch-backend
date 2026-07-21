@@ -1,0 +1,43 @@
+name: Notice Catch CI (빌드 및 테스트 검증)
+
+# PR을 생성하거나 PR에 추가 커밋을 보낼 때, dev/main 브랜치에 push될 때 실행
+on:
+  pull_request:
+    branches: [ "main", "dev" ]
+  push:
+    branches: [ "dev" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. GitHub 저장소의 최신 코드 가져오기
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. JDK 21 환경 세팅
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # 3. Gradle 캐싱
+      - name: Gradle Caching
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # 4. gradlew 실행 권한 부여
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # 5. 전체 단위 테스트 실행 및 빌드 검증
+      - name: Build and Test with Gradle
+        run: ./gradlew build
