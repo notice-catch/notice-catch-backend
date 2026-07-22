@@ -18,6 +18,10 @@ public enum GeneralErrorCode implements BaseErrorCode{
             "COMMON403", "접근이 금지되었습니다."),
     NOT_FOUND(HttpStatus.NOT_FOUND,
             "COMMON404", "해당 리소스를 찾을 수 없습니다."),
+    METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED,
+            "COMMON405", "지원하지 않는 HTTP 메소드입니다."),
+    CONFLICT(HttpStatus.CONFLICT,
+            "COMMON409", "요청이 현재 리소스 상태와 충돌합니다."),
     ;
 
     private final HttpStatus status;
