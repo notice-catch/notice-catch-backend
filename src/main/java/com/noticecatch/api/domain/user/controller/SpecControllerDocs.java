@@ -1,5 +1,9 @@
 package com.noticecatch.api.domain.user.controller;
 
+import com.noticecatch.api.domain.user.dto.request.SpecUpsertRequest;
+import com.noticecatch.api.domain.user.dto.response.SpecResponse;
+import com.noticecatch.api.global.apiPayload.response.ScrapPageResponse;
+import com.noticecatch.api.global.resolver.CurrentUserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -8,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
-import java.util.Map;
 
 @Tag(name = "📝 Spec Log", description = "유저 개인 취업 준비 스펙 CRUD 관리 API")
 public interface SpecControllerDocs {
@@ -83,7 +86,8 @@ public interface SpecControllerDocs {
                     )
             )
     })
-    com.noticecatch.api.global.apiPayload.ApiResponse<Map<String, Object>> getSpecs(
+    com.noticecatch.api.global.apiPayload.ApiResponse<ScrapPageResponse<SpecResponse>> getSpecs(
+            @Parameter(hidden = true) @CurrentUserId Long userId,
             @RequestParam String category,
             @RequestParam String sort,
             @RequestParam int page,
@@ -151,7 +155,12 @@ public interface SpecControllerDocs {
                     )
             )
     })
-    com.noticecatch.api.global.apiPayload.ApiResponse<Map<String, Object>> addSpec(@RequestParam int page, @RequestParam int size, @RequestBody Map<String, Object> request);
+    com.noticecatch.api.global.apiPayload.ApiResponse<ScrapPageResponse<SpecResponse>> addSpec(
+            @Parameter(hidden = true) @CurrentUserId Long userId,
+            @RequestParam int page,
+            @RequestParam int size,
+            @RequestBody SpecUpsertRequest request
+    );
 
     @Operation(summary = "스펙 로그 수정", description = "특정 고유번호의 취업 스펙 기록 사안을 수정 업데이트합니다.")
     @ApiResponses(value = {
@@ -231,9 +240,10 @@ public interface SpecControllerDocs {
                     )
             )
     })
-    com.noticecatch.api.global.apiPayload.ApiResponse<Map<String, Object>> updateSpec(
+    com.noticecatch.api.global.apiPayload.ApiResponse<ScrapPageResponse<SpecResponse>> updateSpec(
+            @Parameter(hidden = true) @CurrentUserId Long userId,
             @Parameter(description = "수정하려는 스펙 고유 ID", example = "104") @PathVariable Long specId,
-            @RequestBody Map<String, Object> request
+            @RequestBody SpecUpsertRequest request
     );
 
     @Operation(summary = "스펙 로그 삭제", description = "단일 스펙을 삭제 후 정리된 최신 현황 목록을 재반환합니다.")
@@ -298,7 +308,8 @@ public interface SpecControllerDocs {
                     )
             )
     })
-    com.noticecatch.api.global.apiPayload.ApiResponse<Map<String, Object>> deleteSpec(
+    com.noticecatch.api.global.apiPayload.ApiResponse<ScrapPageResponse<SpecResponse>> deleteSpec(
+            @Parameter(hidden = true) @CurrentUserId Long userId,
             @Parameter(description = "삭제하려는 스펙 고유 ID", example = "104") @PathVariable Long specId
     );
 }
