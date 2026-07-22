@@ -1,43 +1,60 @@
 package com.noticecatch.api.domain.user.controller;
 
+import com.noticecatch.api.domain.user.dto.request.SpecUpsertRequest;
+import com.noticecatch.api.domain.user.dto.response.SpecResponse;
+import com.noticecatch.api.domain.user.service.SpecService;
 import com.noticecatch.api.global.apiPayload.ApiResponse;
 import com.noticecatch.api.global.apiPayload.code.GeneralSuccessCode;
+import com.noticecatch.api.global.apiPayload.response.ScrapPageResponse;
+import com.noticecatch.api.global.resolver.CurrentUserId;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
-import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/specs")
 public class SpecController implements SpecControllerDocs {
+
+    private final SpecService specService;
+
     @Override
     @GetMapping
-    public ApiResponse<Map<String, Object>> getSpecs(
+    public ApiResponse<ScrapPageResponse<SpecResponse>> getSpecs(
+            @CurrentUserId Long userId,
             @RequestParam String category,
             @RequestParam String sort,
             @RequestParam int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ApiResponse.onSuccess(GeneralSuccessCode.OK, null);
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK,
+                specService.getSpecs(userId, category, sort, PageRequest.of(page, size)));
     }
 
     @Override
     @PostMapping
-    public ApiResponse<Map<String, Object>> addSpec(
+    public ApiResponse<ScrapPageResponse<SpecResponse>> addSpec(
+            @CurrentUserId Long userId,
             @RequestParam int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestBody Map<String, Object> request) {
-        return ApiResponse.onSuccess(GeneralSuccessCode.OK, null);
+            @RequestBody SpecUpsertRequest request) {
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK,
+                specService.addSpec(userId, request, PageRequest.of(page, size)));
     }
 
     @Override
     @PutMapping("/{specId}")
-    public ApiResponse<Map<String, Object>> updateSpec(
+    public ApiResponse<ScrapPageResponse<SpecResponse>> updateSpec(
+            @CurrentUserId Long userId,
             @PathVariable Long specId,
-            @RequestBody Map<String, Object> request) {
-        return ApiResponse.onSuccess(GeneralSuccessCode.OK, null);
+            @RequestBody SpecUpsertRequest request) {
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, specService.updateSpec(userId, specId, request));
     }
 
     @Override
     @DeleteMapping("/{specId}")
-    public ApiResponse<Map<String, Object>> deleteSpec(@PathVariable Long specId) {
-        return ApiResponse.onSuccess(GeneralSuccessCode.OK, null);
+    public ApiResponse<ScrapPageResponse<SpecResponse>> deleteSpec(
+            @CurrentUserId Long userId,
+            @PathVariable Long specId) {
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, specService.deleteSpec(userId, specId));
     }
 }
