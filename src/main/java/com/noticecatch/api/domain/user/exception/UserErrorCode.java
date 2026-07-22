@@ -8,6 +8,10 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum UserErrorCode implements BaseErrorCode {
+    INVALID_OAUTH_PROVIDER(HttpStatus.BAD_REQUEST,
+            "USER4003", "지원하지 않는 소셜 로그인 제공자입니다."),
+    INVALID_OAUTH_TOKEN(HttpStatus.UNAUTHORIZED,
+            "USER4011", "유효하지 않거나 만료된 소셜 토큰입니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND,
             "USER4041", "존재하지 않거나 이미 탈퇴한 회원의 프로필입니다."),
     INVALID_UNIVERSITY_OR_DEPARTMENT(HttpStatus.BAD_REQUEST,
