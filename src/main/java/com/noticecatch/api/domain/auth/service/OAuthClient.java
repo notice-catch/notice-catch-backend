@@ -4,6 +4,7 @@ import com.noticecatch.api.domain.auth.dto.response.OAuthUserInfo;
 import com.noticecatch.api.domain.user.exception.UserErrorCode;
 import com.noticecatch.api.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.Map;
 
 @Component
+@Profile("!local") //로컬이 아닐 때만 실제 api 실행
 @RequiredArgsConstructor
 public class OAuthClient {
 
