@@ -1,5 +1,6 @@
 package com.noticecatch.api.domain.auth.controller;
 
+import com.noticecatch.api.domain.auth.dto.request.LoginRequest;
 import com.noticecatch.api.domain.auth.dto.response.LoginResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -56,7 +57,7 @@ public interface AuthControllerDocs {
                     )
             )
     })
-    com.noticecatch.api.global.apiPayload.ApiResponse<LoginResponse> login(@RequestBody Map<String, Object> request);
+    com.noticecatch.api.global.apiPayload.ApiResponse<LoginResponse> login(@RequestBody LoginRequest request);
 
     @Operation(summary = "로그아웃", description = "유저 로그아웃 처리를 진행합니다.")
     @ApiResponses(value = {
