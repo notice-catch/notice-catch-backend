@@ -7,6 +7,7 @@ import com.noticecatch.api.domain.user.entity.User;
 import com.noticecatch.api.domain.user.exception.UserErrorCode;
 import com.noticecatch.api.domain.user.repository.UserRepository;
 import com.noticecatch.api.global.apiPayload.exception.ProjectException;
+import com.noticecatch.api.global.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final OAuthClient oAuthClient;
+    private final JwtProvider jwtProvider;
 
     public LoginResponse socialLogin(LoginRequest request) {
         // 1. 소셜 로그인 토큰 검증 및 유저 정보 조회
@@ -35,9 +37,9 @@ public class AuthService {
                     return registerNewUser(userInfo);
                 });
 
-        // 3. JWT 토큰 발급 (추후 실제 JWT 생성 모듈로 대체)
-        String accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.sample_access_token";
-        String refreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.sample_refresh_token";
+        // 3. JWT 토큰 발급
+        String accessToken = jwtProvider.createAccessToken(user.getId());
+        String refreshToken = jwtProvider.createRefreshToken(user.getId());
 
         return LoginResponse.builder()
                 .accessToken(accessToken)
