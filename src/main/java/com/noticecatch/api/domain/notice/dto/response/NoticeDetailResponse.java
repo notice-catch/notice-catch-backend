@@ -2,6 +2,7 @@ package com.noticecatch.api.domain.notice.dto.response;
 
 import com.noticecatch.api.domain.notice.entity.Notice;
 import com.noticecatch.api.domain.notice.entity.NoticeSummary;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class NoticeDetailResponse {
 
@@ -28,7 +29,7 @@ public class NoticeDetailResponse {
 
     @Getter
     @Builder
-    @NoArgsConstructor
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @AllArgsConstructor
     public static class AiSummaryDto {
         private String eligibility;
@@ -36,7 +37,9 @@ public class NoticeDetailResponse {
         private String deadline;
 
         public static AiSummaryDto from(NoticeSummary noticeSummary) {
-            if (noticeSummary == null) return null;
+            if (noticeSummary == null) {
+                return null;
+            }
             return AiSummaryDto.builder()
                     .eligibility(noticeSummary.getEligibility())
                     .benefit(noticeSummary.getBenefit())
@@ -46,6 +49,10 @@ public class NoticeDetailResponse {
     }
 
     public static NoticeDetailResponse from(Notice notice) {
+        if (notice == null) {
+            return null;
+        }
+
         return NoticeDetailResponse.builder()
                 .noticeId(notice.getId())
                 .categoryTag(notice.getCategory() != null ? notice.getCategory().getName() : null)
@@ -54,7 +61,7 @@ public class NoticeDetailResponse {
                 .createdAt(notice.getPostedAt())
                 .deadlineAt(notice.getDeadlineAt())
                 .content(notice.getContent())
-                .hasFiles(notice.getHasAttachments())
+                .hasFiles(notice.getHasAttachments() != null ? notice.getHasAttachments() : false)
                 .originalUrl(notice.getOriginUrl())
                 .aiSummary(AiSummaryDto.from(notice.getNoticeSummary()))
                 .build();
