@@ -16,19 +16,20 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OAuthClient {
 
-    private final WebClient webClient = WebClient.create();
+    private final WebClient webClient;
 
     public OAuthUserInfo getUserInfo(String socialType, String socialToken) {
-        if ("KAKAO".equalsIgnoreCase(socialType)) {
+        /*if ("KAKAO".equalsIgnoreCase(socialType)) {
             return getKakaoUserInfo(socialToken);
-        } else if ("GOOGLE".equalsIgnoreCase(socialType)) {
+        } else*/
+        if ("GOOGLE".equalsIgnoreCase(socialType)) {
             return getGoogleUserInfo(socialToken);
         }
         // 지원하지 않는 socialType 처리
         throw new ProjectException(UserErrorCode.INVALID_OAUTH_PROVIDER);
     }
 
-    private OAuthUserInfo getKakaoUserInfo(String socialToken) {
+    /*private OAuthUserInfo getKakaoUserInfo(String socialToken) {
         try {
             Map<String, Object> response = webClient.get()
                     .uri("https://kapi.kakao.com/v2/user/me")
@@ -66,7 +67,7 @@ public class OAuthClient {
             // 카카오 서버 연동 실패 or 유효하지 않은 토큰
             throw new ProjectException(UserErrorCode.INVALID_OAUTH_TOKEN);
         }
-    }
+    }*/
 
     private OAuthUserInfo getGoogleUserInfo(String socialToken) {
         try {

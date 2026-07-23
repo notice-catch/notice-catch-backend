@@ -26,6 +26,6 @@ spring:
               - email
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:local_default_jwt_secret_key_for_notice_catch_32bytes}
   access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000} # 기본값 1시간
   refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:1209600000} # 기본값 14일
