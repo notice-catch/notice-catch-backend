@@ -12,8 +12,20 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - profile
+              - email
+
 jwt:
-  # 테스트용 예시 키
-  secret: c2VjcmV0LWtleS1mb3Itbm90aWNlLWNhdGNoLXNlcnZpY2Utand0LXRva2VuLXNlY3JldA==
-  access-token-expiration: 3600000     # 1시간
-  refresh-token-expiration: 1209600000 # 14일
+  secret: ${JWT_SECRET}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000} # 기본값 1시간
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:1209600000} # 기본값 14일
