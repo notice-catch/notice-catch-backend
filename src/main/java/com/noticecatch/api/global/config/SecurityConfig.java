@@ -1,9 +1,13 @@
 package com.noticecatch.api.global.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.noticecatch.api.global.apiPayload.ApiResponse;
+import com.noticecatch.api.global.apiPayload.code.GeneralErrorCode;
 import com.noticecatch.api.global.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -22,6 +26,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -37,6 +42,21 @@ public class SecurityConfig {
                 // JWT 사용을 위해 Stateless 세션 정책 설정
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
+                // 인증/인가 예외 처리 추가
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            GeneralErrorCode errorCode = GeneralErrorCode.UNAUTHORIZED;
+
+                            response.setStatus(errorCode.getStatus().value()); // 401
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.setCharacterEncoding("UTF-8");
+
+                            ApiResponse<Object> errorResponse = ApiResponse.onFailure(errorCode, null);
+
+                            response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+                        })
+                )
+
                 // 요청 URL별 권한 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -48,7 +68,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()   // 그 외 모든 요청은 JWT 인증 필요
                 )
 
-                // 5. JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 배치
+                // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 배치
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

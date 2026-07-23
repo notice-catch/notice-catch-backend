@@ -12,3 +12,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+jwt:
+  # 테스트용 예시 키
+  secret: c2VjcmV0LWtleS1mb3Itbm90aWNlLWNhdGNoLXNlcnZpY2Utand0LXRva2VuLXNlY3JldA==
+  access-token-expiration: 3600000     # 1시간
+  refresh-token-expiration: 1209600000 # 14일
