@@ -1,4 +1,4 @@
-name: Notice Catch CD (자동 배포)
+name: Notice Catch 자동 배포
 
 # main 브랜치에 push가 발생하면 실행
 on:
@@ -14,12 +14,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. JDK 21 세팅
+      # 2. JDK 21 세팅 (Gradle 캐시 활성화 추가)
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: 'gradle'
 
       # 3. Gradle 명령어 실행 권한 부여
       - name: Grant execute permission for gradlew
@@ -40,15 +41,16 @@ jobs:
           target: "/home/ubuntu/infra"
           strip_components: 1
 
-      # 6. 빌드된 jar 파일 전송
+      # 6. 빌드된 실행용 jar 파일만 전송 (plain.jar 제외)
       - name: Transfer jar to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
-          source: "build/libs/*.jar"
+          source: "build/libs/*[!plain].jar"
           target: "/home/ubuntu/infra"
+          strip_components: 2 # build/libs/ 경로 제외하고 파일만 전송
 
       # 7. EC2 서버 접속 후 도커 컴포즈 재실행 (SSH)
       - name: Deploy to EC2 via SSH
@@ -59,4 +61,6 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             cd /home/ubuntu/infra
+            mv build/libs/*[!plain].jar app.jar 2>/dev/null || true
             sudo docker compose -f docker-compose-prod.yml up -d --build
+            sudo docker image prune -f
