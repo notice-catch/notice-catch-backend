@@ -16,7 +16,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OAuthClient {
 
-    private final WebClient webClient;
+    protected final WebClient webClient;
 
     public OAuthUserInfo getUserInfo(String socialType, String socialToken) {
         /*if ("KAKAO".equalsIgnoreCase(socialType)) {

@@ -5,10 +5,15 @@ import com.noticecatch.api.domain.user.exception.UserErrorCode;
 import com.noticecatch.api.global.apiPayload.exception.ProjectException;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Component
 @Profile("local") // local 실행시에만 빈으로 등록됨
 public class MockOAuthClient extends OAuthClient {
+
+    public MockOAuthClient(WebClient webClient) {
+        super(webClient);
+    }
 
     @Override
     public OAuthUserInfo getUserInfo(String socialType, String socialToken) {
