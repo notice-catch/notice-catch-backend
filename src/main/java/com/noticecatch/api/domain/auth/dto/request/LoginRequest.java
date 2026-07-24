@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginRequest {
-    private String socialToken; // 소셜 Access Token
+    private String authorizationCode; // 구글/카카오에서 발급받은 인가 코드
     private String socialType;  // "KAKAO" 또는 "GOOGLE"
 }

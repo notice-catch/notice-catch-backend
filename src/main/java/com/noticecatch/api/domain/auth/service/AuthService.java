@@ -24,9 +24,12 @@ public class AuthService {
     private final JwtProvider jwtProvider;
 
     public LoginResponse socialLogin(LoginRequest request) {
-        // 1. 소셜 로그인 토큰 검증 및 유저 정보 조회
-        OAuthUserInfo userInfo = oAuthClient.getUserInfo(request.getSocialType(),
-                request.getSocialToken());
+        // 인가 코드로 구글 Access Token 발급받기
+        String socialAccessToken = oAuthClient.getAccessToken(request.getSocialType(),
+                request.getAuthorizationCode());
+
+        // 1. 발급받은 Access Token으로 유저 정보 조회
+        OAuthUserInfo userInfo = oAuthClient.getUserInfo(request.getSocialType(), socialAccessToken);
 
         AtomicBoolean isNewUser = new AtomicBoolean(false);
 
