@@ -3,6 +3,8 @@ package com.noticecatch.api.global.resolver;
 import com.noticecatch.api.global.apiPayload.code.GeneralErrorCode;
 import com.noticecatch.api.global.apiPayload.exception.ProjectException;
 import org.springframework.core.MethodParameter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -28,13 +30,14 @@ public class CurrentUserIdArgumentResolver implements HandlerMethodArgumentResol
     @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
                                    NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
-        String header = webRequest.getHeader(TEMP_USER_ID_HEADER);
-        if (header == null || header.isBlank()) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
             throw new ProjectException(GeneralErrorCode.UNAUTHORIZED);
         }
         try {
-            return Long.parseLong(header);
-        } catch (NumberFormatException e) {
+            return (Long) authentication.getPrincipal();
+        } catch (ClassCastException e) {
             throw new ProjectException(GeneralErrorCode.UNAUTHORIZED);
         }
     }

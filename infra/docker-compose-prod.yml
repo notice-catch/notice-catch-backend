@@ -9,9 +9,15 @@ services:
     container_name: catch-api-prod
     ports:
       - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:mariadb://${PROD_DB_HOST}:3306/${PROD_DB_DATABASE}
-      - SPRING_DATASOURCE_USERNAME=${PROD_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${PROD_DB_PASSWORD}
+    env_file:
+      - .env
+    depends_on:
+      - catch-redis
+    restart: always
+
+  catch-redis:
+    image: redis:alpine
+    container_name: catch-redis-prod
+    ports:
+      - "6379:6379"
     restart: always

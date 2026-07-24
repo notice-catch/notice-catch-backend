@@ -10,9 +10,35 @@ services:
       MARIADB_USER: catch_user
       MARIADB_PASSWORD: catch_password
       TZ: Asia/Seoul
+    # 한글 및 이모지 깨짐 방지 설정 추가
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
     volumes:
       - mariadb_local_data:/var/lib/mysql
     restart: always
+    networks:
+      - catch-network
+
+  catch-redis:
+    image: redis:alpine
+    container_name: catch-redis-local
+    ports:
+      - "6379:6379"
+    environment:
+      - TZ=Asia/Seoul
+    # 컨테이너 재시작 시에도 Redis 데이터가 유지되도록 AOF 옵션 키기
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_local_data:/data
+    restart: always
+    networks:
+      - catch-network
 
 volumes:
   mariadb_local_data:
+  redis_local_data:
+
+networks:
+  catch-network:
+    driver: bridge
