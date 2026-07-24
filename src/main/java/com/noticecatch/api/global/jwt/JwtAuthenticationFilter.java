@@ -1,5 +1,6 @@
 package com.noticecatch.api.global.jwt;
 
+import com.noticecatch.api.global.redis.RedisService;
 import com.noticecatch.api.global.security.UserAuthentication;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,6 +19,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
+    private final RedisService redisService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -25,17 +27,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = resolveToken(request);
 
-        // 토큰이 존재하고 유효하다면 SecurityContext에 유저 정보 저장
+        // 토큰 유효성 검증, Redis 블랙리스트(로그아웃 여부) 검증
         if (StringUtils.hasText(token) && jwtProvider.validateToken(token)) {
-            Long userId = jwtProvider.getUserId(token);
-            UserAuthentication authentication = new UserAuthentication(userId);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            // 로그아웃되어 블랙리스트에 등록된 토큰이면 인증 처리 거부
+            if (!redisService.isBlackListed(token)) {
+                Long userId = jwtProvider.getUserId(token);
+                UserAuthentication authentication = new UserAuthentication(userId);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
         }
 
         filterChain.doFilter(request, response);
     }
 
-    // Header에서 Bearer 떼어내기
+    // Header에서 Bearer 떼기
     private String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {

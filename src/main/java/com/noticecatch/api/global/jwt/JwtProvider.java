@@ -69,6 +69,20 @@ public class JwtProvider {
         return Long.parseLong(claims.getSubject());
     }
 
+    // 토큰의 남은 만료 시간(ms) 계산
+    public long getExpirationMillis(String token) {
+        Claims claims = parseClaims(token);
+        long expirationTime = claims.getExpiration().getTime();
+        long currentTime = System.currentTimeMillis();
+
+        return Math.max(0, expirationTime - currentTime);
+    }
+
+    // Refresh Token의 설정된 만료 시간(ms) 제공
+    public long getRefreshTokenExpirationMillis() {
+        return this.refreshTokenExpiration;
+    }
+
     // 토큰 유효성 및 만료 여부 검증
     public boolean validateToken(String token) {
         try {

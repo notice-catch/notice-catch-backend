@@ -8,6 +8,7 @@ import com.noticecatch.api.domain.user.exception.UserErrorCode;
 import com.noticecatch.api.domain.user.repository.UserRepository;
 import com.noticecatch.api.global.apiPayload.exception.ProjectException;
 import com.noticecatch.api.global.jwt.JwtProvider;
+import com.noticecatch.api.global.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final OAuthClient oAuthClient;
     private final JwtProvider jwtProvider;
+    private final RedisService redisService;
 
     public LoginResponse socialLogin(LoginRequest request) {
         // 인가 코드로 Access Token 발급받기
@@ -44,6 +46,10 @@ public class AuthService {
         String accessToken = jwtProvider.createAccessToken(user.getId());
         String refreshToken = jwtProvider.createRefreshToken(user.getId());
 
+        // 4. Redis에 Refresh Token 저장
+        long refreshTokenExpiration = jwtProvider.getRefreshTokenExpirationMillis();
+        redisService.saveRefreshToken(user.getId(), refreshToken, refreshTokenExpiration);
+
         return LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -63,11 +69,20 @@ public class AuthService {
         return userRepository.save(newUser);
     }
 
-    public void logout(Long userId) {
-        // 유저 존재 여부 검증
+    /**
+     * @param accessToken 순수 Access Token 값 ("Bearer " 제외)
+     * @param userId 인증된 사용자 ID
+     */
+    public void logout(String accessToken, Long userId) {
+        // 1. 유저 존재 여부 검증
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ProjectException(UserErrorCode.USER_NOT_FOUND));
 
-        // 필요 시 토큰 블랙리스트/만료 처리 로직 구현
+        // 2. Redis에서 해당 유저의 Refresh Token 삭제
+        redisService.deleteRefreshToken(user.getId());
+
+        // 3. Access Token의 남은 만료 시간을 구해서 Redis 블랙리스트 등록
+        long remainingExpirationMillis = jwtProvider.getExpirationMillis(accessToken);
+        redisService.setBlackList(accessToken, remainingExpirationMillis);
     }
 }
