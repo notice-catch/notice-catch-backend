@@ -1,4 +1,4 @@
-name: Notice Catch 자동 배포
+name: Notice Catch CD
 
 # main 브랜치에 push가 발생하면 실행
 on:
@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. JDK 21 세팅 (Gradle 캐시 활성화 추가)
+      # 2. JDK 21 세팅 (Gradle 캐시 활성화)
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -30,7 +30,11 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew bootJar -x test
 
-      # 5. Docker 관련 파일 전송
+      # 전송 편의성을 위해 빌드된 jar 파일명을 app.jar로 변경
+      - name: Rename JAR file
+        run: mv build/libs/*[!plain].jar build/libs/app.jar
+
+      # 5. Docker 관련 파일 전송 (infra 폴더 안의 파일들 전송)
       - name: Transfer Docker files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -41,16 +45,16 @@ jobs:
           target: "/home/ubuntu/infra"
           strip_components: 1
 
-      # 6. 빌드된 실행용 jar 파일만 전송 (plain.jar 제외)
+      # 6. 빌드 및 이름 변경된 app.jar만 EC2 target 경로로 직접 전송
       - name: Transfer jar to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
-          source: "build/libs/*[!plain].jar"
+          source: "build/libs/app.jar"
           target: "/home/ubuntu/infra"
-          strip_components: 2 # build/libs/ 경로 제외하고 파일만 전송
+          strip_components: 2 # build/libs 경로를 떼어내고 infra/app.jar로 바로 배치
 
       # 7. EC2 서버 접속 후 도커 컴포즈 재실행 (SSH)
       - name: Deploy to EC2 via SSH
@@ -61,6 +65,5 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             cd /home/ubuntu/infra
-            mv build/libs/*[!plain].jar app.jar 2>/dev/null || true
             sudo docker compose -f docker-compose-prod.yml up -d --build
             sudo docker image prune -f

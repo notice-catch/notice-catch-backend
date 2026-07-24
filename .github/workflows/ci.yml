@@ -1,11 +1,16 @@
 name: Notice Catch CI
 
-# dev/main 브랜치에 push될 때 실행
 on:
   pull_request:
     branches: [ "main", "dev" ]
   push:
     branches: [ "dev" ]
+
+permissions:
+  contents: read
+  issues: write
+  checks: write
+  pull-requests: write
 
 jobs:
   build-and-test:
@@ -29,12 +34,13 @@ jobs:
         run: chmod +x gradlew
 
       # 4. 전체 단위 테스트 실행 및 빌드 검증
+      # application-test.yml 덕분에 별도의 env/Secrets 지정 없이 바로 빌드가 성공합니다!
       - name: Build and Test with Gradle
         run: ./gradlew build
 
       # 5. 테스트 실패 시 결과를 GitHub UI에 보기 좋게 리포팅
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always() # 빌드 실패 시에도 실행
+        if: always() # 빌드/테스트 실패 시에도 리포트를 위해 항상 실행
         with:
           files: '**/build/test-results/test/TEST-*.xml'
