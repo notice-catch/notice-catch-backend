@@ -51,4 +51,14 @@ public class Spec {
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    public void update(String category, String title, String organization, LocalDate specDate,
+                        String scoreOrGrade, String memo) {
+        this.category = category;
+        this.title = title;
+        this.organization = organization;
+        this.specDate = specDate;
+        this.scoreOrGrade = scoreOrGrade;
+        this.memo = memo;
+    }
 }

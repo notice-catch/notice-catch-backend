@@ -11,8 +11,8 @@ RUN apk add --no-cache tzdata && \
 RUN addgroup --system spring && adduser --system spring -G spring
 USER spring:spring
 
-# 외부(내 컴퓨터)에서 빌드된 jar 파일을 컨테이너 안으로 복사
-COPY build/libs/*.jar app.jar
+# 같은 경로의 app.jar를 복사하도록 변경
+COPY app.jar app.jar
 
 EXPOSE 8080
 

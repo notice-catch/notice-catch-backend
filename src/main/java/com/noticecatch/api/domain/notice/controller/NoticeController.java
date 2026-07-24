@@ -1,13 +1,20 @@
 package com.noticecatch.api.domain.notice.controller;
 
+import com.noticecatch.api.domain.notice.dto.response.NoticeDetailResponse;
+import com.noticecatch.api.domain.notice.service.NoticeService;
 import com.noticecatch.api.global.apiPayload.ApiResponse;
 import com.noticecatch.api.global.apiPayload.code.GeneralSuccessCode;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/notices")
+@RequiredArgsConstructor
 public class NoticeController implements NoticeControllerDocs {
+
+    private final NoticeService noticeService;
+
     @Override
     @GetMapping
     public ApiResponse<Map<String, Object>> getNotices(
@@ -19,8 +26,9 @@ public class NoticeController implements NoticeControllerDocs {
 
     @Override
     @GetMapping("/{noticeId}")
-    public ApiResponse<Map<String, Object>> getNoticeDetail(@PathVariable Long noticeId) {
-        return ApiResponse.onSuccess(GeneralSuccessCode.OK, null);
+    public ApiResponse<NoticeDetailResponse> getNoticeDetail(@PathVariable Long noticeId) {
+        NoticeDetailResponse response = noticeService.getNoticeDetail(noticeId);
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, response);
     }
 
     @Override
