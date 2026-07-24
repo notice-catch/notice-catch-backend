@@ -17,16 +17,17 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 @Component
-/*@Profile("!local") //로컬이 아닐 때만 실제 api 실행*/
 @RequiredArgsConstructor
 public class OAuthClient {
 
     protected final WebClient webClient;
 
+    // Google 환경변수
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
 
@@ -36,10 +37,22 @@ public class OAuthClient {
     @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
     private String googleRedirectUri;
 
-    // 1. 인가 코드를 이용해 소셜 Access Token 발급
+    // Kakao 환경변수
+    @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
+    private String kakaoClientId;
+
+    @Value("${spring.security.oauth2.client.registration.kakao.client-secret:}")
+    private String kakaoClientSecret;
+
+    @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri}")
+    private String kakaoRedirectUri;
+
+    // 소셜 Access Token 발급
     public String getAccessToken(String socialType, String authorizationCode) {
         if ("GOOGLE".equalsIgnoreCase(socialType)) {
             return getGoogleAccessToken(authorizationCode);
+        } else if ("KAKAO".equalsIgnoreCase(socialType)) {
+            return getKakaoAccessToken(authorizationCode);
         }
         throw new ProjectException(UserErrorCode.INVALID_OAUTH_PROVIDER);
     }
@@ -47,60 +60,49 @@ public class OAuthClient {
     private String getGoogleAccessToken(String authorizationCode) {
         String decodedCode = URLDecoder.decode(authorizationCode, StandardCharsets.UTF_8);
 
-        log.info("=== Google OAuth 디버깅 ===");
-        log.info("Raw Code: {}", authorizationCode);
-        log.info("Decoded Code: {}", decodedCode);
-        log.info("ClientId: {}", googleClientId);
-        log.info("ClientSecret: {}", googleClientSecret);
-        log.info("RedirectUri: {}", googleRedirectUri);
-        log.info("===========================");
+        Map<String, String> params = Map.of(
+                "code", decodedCode,
+                "client_id", googleClientId,
+                "client_secret", googleClientSecret,
+                "redirect_uri", googleRedirectUri,
+                "grant_type", "authorization_code"
+        );
 
-        try {
-            MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-            formData.add("code", decodedCode);
-            formData.add("client_id", googleClientId);
-            formData.add("client_secret", googleClientSecret);
-            formData.add("redirect_uri", googleRedirectUri);
-            formData.add("grant_type", "authorization_code");
-
-            Map<String, Object> response = webClient.post()
-                    .uri("https://oauth2.googleapis.com/token")
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-                    .body(BodyInserters.fromFormData(formData))
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                    .block();
-
-            if (response == null || !response.containsKey("access_token")) {
-                throw new ProjectException(UserErrorCode.INVALID_OAUTH_TOKEN);
-            }
-
-            return (String) response.get("access_token");
-        } catch (ProjectException e) {
-            throw e;
-        } catch (Exception e) {
-            // 구글 토큰 교환 실패
-            throw new ProjectException(UserErrorCode.INVALID_OAUTH_TOKEN);
-        }
+        return fetchAccessToken("https://oauth2.googleapis.com/token", createFormData(params));
     }
 
-    // 2. Access Token을 이용해 소셜 유저 정보 조회
+    private String getKakaoAccessToken(String authorizationCode) {
+        String decodedCode = URLDecoder.decode(authorizationCode, StandardCharsets.UTF_8);
+
+        Map<String, String> params = new HashMap<>();
+        params.put("grant_type", "authorization_code");
+        params.put("client_id", kakaoClientId);
+        params.put("redirect_uri", kakaoRedirectUri);
+        params.put("code", decodedCode);
+
+        if (kakaoClientSecret != null && !kakaoClientSecret.isBlank()) {
+            params.put("client_secret", kakaoClientSecret);
+        }
+
+        return fetchAccessToken("https://kauth.kakao.com/oauth/token", createFormData(params));
+    }
+
+    // 2. 소셜 유저 정보 조회
     public OAuthUserInfo getUserInfo(String socialType, String socialToken) {
-        /*if ("KAKAO".equalsIgnoreCase(socialType)) {
+        if ("KAKAO".equalsIgnoreCase(socialType)) {
             return getKakaoUserInfo(socialToken);
-        } else*/
-        if ("GOOGLE".equalsIgnoreCase(socialType)) {
+        } else if ("GOOGLE".equalsIgnoreCase(socialType)) {
             return getGoogleUserInfo(socialToken);
         }
-        // 지원하지 않는 socialType 처리
         throw new ProjectException(UserErrorCode.INVALID_OAUTH_PROVIDER);
     }
 
-    /*private OAuthUserInfo getKakaoUserInfo(String socialToken) {
+    private OAuthUserInfo getKakaoUserInfo(String socialToken) {
         try {
             Map<String, Object> response = webClient.get()
                     .uri("https://kapi.kakao.com/v2/user/me")
-                    .header("Authorization", "Bearer " + socialToken)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + socialToken)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE + ";charset=utf-8")
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                     .block();
@@ -131,16 +133,15 @@ public class OAuthClient {
         } catch (ProjectException e) {
             throw e;
         } catch (Exception e) {
-            // 카카오 서버 연동 실패 or 유효하지 않은 토큰
             throw new ProjectException(UserErrorCode.INVALID_OAUTH_TOKEN);
         }
-    }*/
+    }
 
     private OAuthUserInfo getGoogleUserInfo(String socialToken) {
         try {
             Map<String, Object> response = webClient.get()
                     .uri("https://www.googleapis.com/oauth2/v3/userinfo")
-                    .header("Authorization", "Bearer " + socialToken)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + socialToken)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                     .block();
@@ -157,7 +158,36 @@ public class OAuthClient {
         } catch (ProjectException e) {
             throw e;
         } catch (Exception e) {
-            // 구글 서버 연동 실패 or 유효하지 않은 토큰
+            throw new ProjectException(UserErrorCode.INVALID_OAUTH_TOKEN);
+        }
+    }
+
+    // Map을 MultiValueMap(Form Data)으로 변환
+    private MultiValueMap<String, String> createFormData(Map<String, String> params) {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        params.forEach(formData::add);
+        return formData;
+    }
+
+    // OAuth Access Token 요청 WebClient 공통 실행
+    private String fetchAccessToken(String uri, MultiValueMap<String, String> formData) {
+        try {
+            Map<String, Object> response = webClient.post()
+                    .uri(uri)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE + ";charset=utf-8")
+                    .body(BodyInserters.fromFormData(formData))
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .block();
+
+            if (response == null || !response.containsKey("access_token")) {
+                throw new ProjectException(UserErrorCode.INVALID_OAUTH_TOKEN);
+            }
+
+            return (String) response.get("access_token");
+        } catch (ProjectException e) {
+            throw e;
+        } catch (Exception e) {
             throw new ProjectException(UserErrorCode.INVALID_OAUTH_TOKEN);
         }
     }

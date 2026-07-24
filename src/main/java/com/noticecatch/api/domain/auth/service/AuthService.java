@@ -24,7 +24,7 @@ public class AuthService {
     private final JwtProvider jwtProvider;
 
     public LoginResponse socialLogin(LoginRequest request) {
-        // 인가 코드로 구글 Access Token 발급받기
+        // 인가 코드로 Access Token 발급받기
         String socialAccessToken = oAuthClient.getAccessToken(request.getSocialType(),
                 request.getAuthorizationCode());
 
