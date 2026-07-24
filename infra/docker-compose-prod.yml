@@ -11,4 +11,13 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    depends_on:
+      - catch-redis
+    restart: always
+
+  catch-redis:
+    image: redis:alpine
+    container_name: catch-redis-prod
+    ports:
+      - "6379:6379"
     restart: always
